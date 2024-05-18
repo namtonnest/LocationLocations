@@ -175,6 +175,43 @@
       padding: 10px;
       border-radius: 5px;
     }
+      /* Modal styles */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+  }
+
+  .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 10px;
+    text-align: center;
+  }
+
+  .close-button {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+
+  .close-button:hover,
+  .close-button:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
   </style>
 </head>
 <body>
@@ -487,17 +524,79 @@
     });
 
     document.getElementById("export-button").addEventListener("click", () => {
-  const data = JSON.stringify({ markers, modelMarkers });
-  const blob = new Blob([data], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "markers.json";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  const mapState = {
+    center: map.getCenter(),
+    zoom: map.getZoom(),
+    style: map.getStyle().sprite,
+    markers,
+    modelMarkers,
+  };
+  const encodedState = encodeURIComponent(JSON.stringify(mapState));
+  const url = `${window.location.origin}${window.location.pathname}?state=${encodedState}`;
+  
+  const modal = document.getElementById("generated-url-modal");
+  const generatedUrlElement = document.getElementById("generated-url");
+  const closeButton = document.querySelector(".close-button");
+
+  generatedUrlElement.innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
+  modal.style.display = "block";
+
+  closeButton.onclick = function() {
+    modal.style.display = "none";
+  };
+
+  window.onclick = function(event) {
+    if (event.target == modal) {
+      modal.style.display = "none";
+    }
+  };
 });
+
+function loadMapState(state) {
+  const mapState = JSON.parse(decodeURIComponent(state));
+  map.setCenter(mapState.center);
+  map.setZoom(mapState.zoom);
+  map.setStyle(`mapbox://styles/mapbox/${mapState.style}`);
+
+  mapState.markers.forEach(({ color, lng, lat }) => {
+    new mapboxgl.Marker({ color }).setLngLat([lng, lat]).addTo(map);
+  });
+
+  mapState.modelMarkers.forEach(({ modelUrl, color, scale, coordinates }) => {
+    const options = {
+      obj: modelUrl,
+      type: "gltf",
+      scale: scale,
+      units: "meters",
+      rotation: { x: 90, y: 45, z: 0 },
+    };
+    tb.loadObj(options, (model) => {
+      model.setCoords(coordinates);
+      model.traverse((node) => {
+        if (node.isMesh) {
+          node.material = new THREE.MeshStandardMaterial({
+            color: color,
+            roughness: 0.5,
+            metalness: 0.5,
+          });
+        }
+      });
+      tb.add(model);
+    });
+  });
+}
+
+function checkForSavedState() {
+  const params = new URLSearchParams(window.location.search);
+  const state = params.get("state");
+  if (state) {
+    loadMapState(state);
+  }
+}
+
+checkForSavedState();
+
+
 
 
     document.getElementById("import-button").addEventListener("click", () => {
@@ -559,5 +658,11 @@
       }
     ;
   </script>
+  <div id="generated-url-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <p id="generated-url"></p>
+    </div>
+  </div>
 </body>
 </html>
