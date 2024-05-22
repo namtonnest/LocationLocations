@@ -340,7 +340,7 @@
         onAdd: function () {
           tb.loadObj({
             type: "gltf",
-            obj: "https://raw.githubusercontent.com/namtonnest/LocationLocations/main/food_truck.glb",
+            obj: "/food_truck.glb",
             scale: 10,
             units: "meters",
             rotation: { x: 90, y: 180, z: 0 },
@@ -387,24 +387,24 @@
         },
         {
           elementId: "draggable-craft",
-          modelUrl: "https://raw.githubusercontent.com/namtonnest/LocationLocations/main/food_truck.glb",
+          modelUrl: "https://raw.githubusercontent.com/namtonnest/3dmodels/main/food_truck.glb",
           type: "gltf",
           scale: { x: 6, y: 6, z: 5.4 }
         },
         {
           elementId: "draggable-washroom",
-          modelUrl: "https://raw.githubusercontent.com/namtonnest/LocationLocations/main/Basecamp.glb",
+          modelUrl: "/Basecamp.glb",
           scale: { x: 5, y: 5, z: 5 }
         },
         {
           elementId: "draggable-utility",
-          modelUrl: "https://raw.githubusercontent.com/namtonnest/LocationLocations/main/SET.glb",
+          modelUrl: "/SET.glb",
           color: 0xff6a00, // Orange color for utility trailer
           scale: { x: 15, y: 15, z: 5 }
         },
         {
           elementId: "draggable-cone",
-          modelUrl: "https://raw.githubusercontent.com/namtonnest/LocationLocations/main/Cone.glb", // Placeholder URL, replace with actual model URL
+          modelUrl: "/Cone.glb", // Placeholder URL, replace with actual model URL
           color: 0xff6a00, // Orange
           scale: { x: 3, y: 3, z: 3 }
         }
@@ -414,16 +414,16 @@
   const draggable = document.getElementById(elementId);
 
   let wasFakeEvent = false;
-  document.addEventListener("dragover", function (event) {
+  document.addEventListener("click", function (event) {
     event.preventDefault();
   });
 
-  draggable.addEventListener("dragend", function (event) {
+  draggable.addEventListener("click", function (event) {
     event.preventDefault();
     const canvas = document.querySelector(".mapboxgl-canvas");
 
     wasFakeEvent = true;
-    const fakeevent = new MouseEvent("mouseup", {
+    const fakeevent = new MouseEvent("click", {
       clientX: event.clientX,
       clientY: event.clientY,
       bubbles: true,
@@ -432,7 +432,7 @@
     canvas.dispatchEvent(fakeevent);
   });
 
-  map.on("mouseup", (event) => {
+  map.on("click", (event) => {
     event.preventDefault();
 
     if (wasFakeEvent) {
@@ -448,15 +448,7 @@
       const coords = map.unproject([x, y]);
       tb.loadObj(options, (model) => {
         model.setCoords([coords.lng, coords.lat]);
-        model.traverse((node) => {
-          if (node.isMesh) {
-            node.material = new THREE.MeshStandardMaterial({
-              color: color,
-              roughness: 0.5,
-              metalness: 0.5,
-            });
-          }
-        });model.set({ rotation: {x: 0, y: 0, z: 9999}, duration: 50000 })
+        model.set({ rotation: {x: 0, y: 0, z: 9999}, duration: 50000 })
         tb.add(model);
 
         // Save model information
@@ -631,15 +623,6 @@ function loadMapState(state) {
     };
     tb.loadObj(options, (model) => {
       model.setCoords(coordinates);
-      model.traverse((node) => {
-        if (node.isMesh) {
-          node.material = new THREE.MeshStandardMaterial({
-            color: color,
-            roughness: 0.5,
-            metalness: 0.5,
-          });
-        }
-      });
       tb.add(model);
     });
   });
