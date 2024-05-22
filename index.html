@@ -39,6 +39,8 @@
       cursor: move;
       font-weight: bold;
       font-size: 10px;
+      border: 1px solid black;
+      border-radius: 25px;
     }
     .draggable2 {
       position: relative;
@@ -53,6 +55,8 @@
       cursor: move;
       font-weight: bold;
       font-size: 10px;
+      border: 1px solid black;
+      border-radius: 25px;
     }
     .draggable3 {
       position: relative;
@@ -67,6 +71,8 @@
       cursor: move;
       font-weight: bold;
       font-size: 10px;
+      border: 1px solid black;
+      border-radius: 25px;
     }
     .draggable4 {
       position: relative;
@@ -81,6 +87,8 @@
       cursor: move;
       font-weight: bold;
       font-size: 10px;
+      border: 1px solid rgb(152, 179, 153);
+      border-radius: 25px;
     }
     .draggable5 {
       position: relative;
@@ -88,13 +96,15 @@
       left: 10px;
       width: 50px;
       height: 50px;
-      background-color: #8b4513; /* Brown color for Cone */
+      background-color: #ff6a00; /* Brown color for Cone */
       color: white;
       text-align: center;
       line-height: 50px;
       cursor: move;
       font-weight: bold;
       font-size: 10px;
+      border: 1px solid black;
+      border-radius: 25px;
     }
     .address-bar {
       position: absolute;
@@ -176,29 +186,57 @@
       padding: 10px;
       border-radius: 5px;
     }
-      /* Modal styles */
-  .modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.4);
-  }
+    #delete-button {
+  background-color: red;
+  color: white;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 40px;
+}
+.modal {
+      display: none;
+      position: fixed;
+      z-index: 20; /* Increase z-index */
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+}
 
-  .modal-content {
-    background-color: #fefefe;
-    margin: 15% auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    max-width: 600px;
-    border-radius: 10px;
-    text-align: center;
-  }
+      /* Modal styles */
+ /* CSS */
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 600px;
+  border-radius: 10px;
+  text-align: center;
+  color: orange;
+  overflow-wrap: break-word;
+  z-index: 1000;
+}
+
+#copy-url-button {
+  background-color: orange;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin-top: 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+#copy-url-button:hover {
+  background-color: darkorange;
+}
+
 
   .close-button {
     color: #aaa;
@@ -218,6 +256,8 @@
 <body>
   <script src="https://cdn.jsdelivr.net/gh/jscastro76/threebox@v.2.2.2/dist/threebox.min.js" type="text/javascript"></script>
   <link href="https://cdn.jsdelivr.net/gh/jscastro76/threebox@v.2.2.2/dist/threebox.css" rel="stylesheet" />
+  <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
+
   <div id="map"></div>
   <div class="address-bar">
     <input type="text" id="address" class="address-input" placeholder="Enter address or postal code" />
@@ -229,8 +269,8 @@
   </div>
   <div id="draggable-truck" class="draggable" draggable="true">Truck</div>
   <div id="draggable-craft" class="draggable2" draggable="true">Craft</div>
-  <div id="draggable-washroom" class="draggable3" draggable="true">Washroom</div>
-  <div id="draggable-utility" class="draggable4" draggable="true">Utility</div>
+  <div id="draggable-washroom" class="draggable3" draggable="true">Basecamp</div>
+  <div id="draggable-utility" class="draggable4" draggable="true">SET</div>
   <div id="draggable-cone" class="draggable5" draggable="true">Cone</div>
   <!-- Map style buttons -->
   <div class="map-style-buttons">
@@ -247,6 +287,7 @@
     <input type="file" id="import-file" style="display: none;" />
   </div>
   <script>
+    
     mapboxgl.accessToken = "pk.eyJ1IjoicHVycGhhY3RzIiwiYSI6ImNsdzY1bzVvNzFwb3IyamxyOG1vY3oyM2gifQ.2LikTeWKwlWsAcEneBXW0Q";
     const map = new mapboxgl.Map({
       container: "map",
@@ -255,8 +296,9 @@
       zoom: 16
     });
 
+
+    
     map.on("load", () => {
-      const initialMarker = new mapboxgl.Marker().setLngLat([-79.3871, 43.6426]).addTo(map);
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -279,13 +321,18 @@
       map.getCanvas().getContext("webgl"),
       {
         defaultLights: true,
+        realSunlight: true,
         enableSelectingObjects: true,
         enableDraggingObjects: true,
         enableRotatingObjects: true,
+        enableSelectingFeatures: true,
       }
     );
 
+    
+
     map.on("style.load", () => {
+
       map.addLayer({
         id: "custom-threebox-model",
         type: "custom",
@@ -293,14 +340,17 @@
         onAdd: function () {
           tb.loadObj({
             type: "gltf",
-            obj: "https://raw.githubusercontent.com/namtonnest/LocationLocations/main/CNTOWER.gltf",
+            obj: "/mercedes.gltf",
             scale: 10,
             units: "meters",
             rotation: { x: 90, y: 180, z: 0 },
             anchor: "center",
           }, function (model) {
             const obj = model.setCoords([-79.3871, 43.6426]);
+            obj.addTooltip("Craft Services is located at the CN Tower", true)
+            obj.set({ rotation: {x: 0, y: 0, z: 9999}, duration: 50000 })
             tb.add(obj);
+            
           });
         },
         render: function (gl, matrix) {
@@ -339,25 +389,23 @@
           elementId: "draggable-craft",
           modelUrl: "https://raw.githubusercontent.com/namtonnest/3dmodels/main/food_truck.glb",
           type: "gltf",
-          color: 0x0000ff,
           scale: { x: 6, y: 6, z: 5.4 }
         },
         {
           elementId: "draggable-washroom",
-          modelUrl: "https://raw.githubusercontent.com/namtonnest/3dmodels/main/washroom_trailer.gltf",
-          color: 0x0000ff, // Blue color for washroom trailer
+          modelUrl: "/Basecamp.glb",
           scale: { x: 5, y: 5, z: 5 }
         },
         {
           elementId: "draggable-utility",
-          modelUrl: "https://raw.githubusercontent.com/namtonnest/3dmodels/main/utility_trailer.gltf",
-          color: 0xffa500, // Orange color for utility trailer
-          scale: { x: 5, y: 5, z: 5 }
+          modelUrl: "/SET.glb",
+          color: 0xff6a00, // Orange color for utility trailer
+          scale: { x: 15, y: 15, z: 5 }
         },
         {
           elementId: "draggable-cone",
           modelUrl: "/Cone.glb", // Placeholder URL, replace with actual model URL
-          color: 0x8b4513, // Brown color for cone
+          color: 0xff6a00, // Orange
           scale: { x: 3, y: 3, z: 3 }
         }
       ];
@@ -390,7 +438,7 @@
     if (wasFakeEvent) {
       const options = {
         obj: modelUrl,
-        type: "gltf",
+        type: "glb",
         scale: scale,
         units: "meters",
         rotation: { x: 90, y: 45, z: 0 },
@@ -408,7 +456,7 @@
               metalness: 0.5,
             });
           }
-        });
+        });model.set({ rotation: {x: 0, y: 0, z: 9999}, duration: 50000 })
         tb.add(model);
 
         // Save model information
@@ -524,7 +572,8 @@
       markers.push({ color: "default", lng: center.lng, lat: center.lat });
     });
 
-    document.getElementById("export-button").addEventListener("click", () => {
+// JavaScript
+document.getElementById("export-button").addEventListener("click", () => {
   const mapState = {
     center: map.getCenter(),
     zoom: map.getZoom(),
@@ -537,13 +586,21 @@
   
   const modal = document.getElementById("generated-url-modal");
   const generatedUrlElement = document.getElementById("generated-url");
+  const copyButton = document.getElementById("copy-url-button");
   const closeButton = document.querySelector(".close-button");
 
-  generatedUrlElement.innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
+  generatedUrlElement.innerHTML = `<textarea id="url-text" readonly>${url}</textarea>`;
   modal.style.display = "block";
 
   closeButton.onclick = function() {
     modal.style.display = "none";
+  };
+
+  copyButton.onclick = function() {
+    const urlText = document.getElementById("url-text");
+    urlText.select();
+    document.execCommand("copy");
+    alert("URL copied to clipboard!");
   };
 
   window.onclick = function(event) {
@@ -552,6 +609,7 @@
     }
   };
 });
+
 
 function loadMapState(state) {
   const mapState = JSON.parse(decodeURIComponent(state));
@@ -659,11 +717,14 @@ checkForSavedState();
       }
     ;
   </script>
-  <div id="generated-url-modal" class="modal">
-    <div class="modal-content">
-      <span class="close-button">&times;</span>
-      <p id="generated-url"></p>
-    </div>
+<div id="generated-url-modal" class="modal">
+  <div class="modal-content">
+    <span class="close-button">&times;</span>
+    <p id="generated-url" style="color: orange; overflow-wrap: break-word;"></p>
+    <button id="copy-url-button">Copy URL</button>
   </div>
+</div>
+<button id="delete-button" class="export-import-buttons">Delete Mode</button>
+
 </body>
 </html>
