@@ -176,20 +176,6 @@
       cursor: pointer;
     }
 
-    .add-marker-button {
-      position: absolute;
-      bottom: 10px;
-      right: 10px;
-      z-index: 10;
-      background-color: white;
-      color: black;
-      border: none;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      cursor: pointer;
-    }
-
     .export-import-buttons {
       position: absolute;
       bottom: 60px;
@@ -291,10 +277,6 @@
     <input type="text" id="address" class="address-input" placeholder="Enter address or postal code" />
     <button id="fly-button" class="address-button">Fly to</button>
   </div>
-<!--   <div class="navigation-bar">
-    <input type="text" id="navigation-address" class="address-input" placeholder="Enter destination address or postal code" />
-    <button id="navigate-button" class="address-button">Navigate</button>
-  </div> -->
 
 
   <div id="draggable-truck" class="draggable" draggable="true">Truck</div>
@@ -308,8 +290,8 @@
     <button id="streets-button">T</button>
     <button id="dark-button">D</button>
   </div>
-  <!-- Add marker button -->
-<!--   <button id="add-marker" class="add-marker-button">+</button> -->
+
+
   <!-- Export and import buttons -->
   <div class="export-import-buttons">
     <button id="export-button">Export</button>
@@ -525,13 +507,7 @@
     map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
     // Add navigation functionality
-    document.getElementById("navigate-button").addEventListener("click", () => {
-      const address = document.getElementById("navigation-address").value;
-      fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxgl.accessToken}`)
-        .then(response => response.json())
-        .then(data => {
-          if (data.features.length > 0) {
-            const [lng, lat] = data.features[0].center;
+
 
             // Get user's current location
             navigator.geolocation.getCurrentPosition(
@@ -586,11 +562,6 @@
       map.setStyle("mapbox://styles/mapbox/dark-v10");
     });
 
-    document.getElementById("add-marker").addEventListener("click", () => {
-      const center = map.getCenter();
-      const marker = new mapboxgl.Marker().setLngLat(center).addTo(map);
-      markers.push({ color: "default", lng: center.lng, lat: center.lat });
-    });
 
     // JavaScript
     document.getElementById("export-button").addEventListener("click", () => {
