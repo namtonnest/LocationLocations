@@ -453,7 +453,8 @@
       const coords = map.unproject([x, y]);
       tb.loadObj(options, (model) => {
         model.setCoords([coords.lng, coords.lat]);
-        model.set({ rotation: {x: 0, y: 0, z: 9999}, duration: 50000 })
+        // ROTATION
+        // model.set({ rotation: {x: 0, y: 0, z: 9999}, duration: 50000 })
         tb.add(model);
 
         // Save model information
