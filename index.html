@@ -298,7 +298,7 @@
       container: "map",
       style: "mapbox://styles/mapbox/light-v11",
       center: { lng: -79.3871, lat: 43.6426 },
-      zoom: 16
+      zoom: 18
     });
 
 
@@ -398,12 +398,12 @@
         },
         {
           elementId: "draggable-washroom",
-          modelUrl: "https://raw.githubusercontent.com/namtonnest/3dmodels/main/Basecamp.glb",
+          modelUrl: "https://raw.githubusercontent.com/namtonnest/LocationLocations/main/Basecamp.glb",
           scale: { x: 5, y: 5, z: 5 }
         },
         {
           elementId: "draggable-utility",
-          modelUrl: "https://raw.githubusercontent.com/namtonnest/3dmodels/main/SET.glb",
+          modelUrl: "https://raw.githubusercontent.com/namtonnest/LocationLocations/main/SET.glb",
           color: 0xff6a00, // Orange color for utility trailer
           scale: { x: 15, y: 15, z: 5 }
         },
@@ -453,8 +453,7 @@
       const coords = map.unproject([x, y]);
       tb.loadObj(options, (model) => {
         model.setCoords([coords.lng, coords.lat]);
-        // ROTATION
-        // model.set({ rotation: {x: 0, y: 0, z: 9999}, duration: 50000 })
+        model.set({ rotation: {x: 0, y: 0, z: 9999}, duration: 50000 })
         tb.add(model);
 
         // Save model information
