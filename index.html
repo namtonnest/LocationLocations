@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8" />
   <title>Location Locations</title>
   <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
   <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
-  <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.js"></script>
-  <link
-    rel="stylesheet"
+  <script
+    src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.js"></script>
+  <link rel="stylesheet"
     href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.css"
-    type="text/css"
-  />
+    type="text/css" />
   <style>
     body {
       margin: 0;
@@ -19,6 +19,7 @@
       overflow: hidden;
       font-family: 'Arial', sans-serif;
     }
+
     #map {
       position: absolute;
       top: 0;
@@ -26,13 +27,15 @@
       width: 100%;
       height: 100%;
     }
+
     .draggable {
       position: relative;
       top: 10px;
       left: 10px;
       width: 50px;
       height: 50px;
-      background-color: #ff0000; /* Red color for Truck */
+      background-color: #ff0000;
+      /* Red color for Truck */
       color: white;
       text-align: center;
       line-height: 50px;
@@ -42,6 +45,7 @@
       border: 1px solid black;
       border-radius: 25px;
     }
+
     .draggable2 {
       position: relative;
       top: 10px;
@@ -58,6 +62,7 @@
       border: 1px solid black;
       border-radius: 25px;
     }
+
     .draggable3 {
       position: relative;
       top: 10px;
@@ -74,6 +79,7 @@
       border: 1px solid black;
       border-radius: 25px;
     }
+
     .draggable4 {
       position: relative;
       top: 10px;
@@ -90,13 +96,15 @@
       border: 1px solid rgb(152, 179, 153);
       border-radius: 25px;
     }
+
     .draggable5 {
       position: relative;
       top: 10px;
       left: 10px;
       width: 50px;
       height: 50px;
-      background-color: #ff6a00; /* Brown color for Cone */
+      background-color: #ff6a00;
+      /* Brown color for Cone */
       color: white;
       text-align: center;
       line-height: 50px;
@@ -106,6 +114,7 @@
       border: 1px solid black;
       border-radius: 25px;
     }
+
     .address-bar {
       position: absolute;
       top: 10px;
@@ -114,33 +123,40 @@
       z-index: 10;
       display: flex;
     }
+
     .address-input {
       width: 300px;
       padding: 5px;
       font-size: 14px;
     }
+
     .address-button {
       padding: 5px 10px;
       font-size: 14px;
       cursor: pointer;
-      background-color: #ff9900; /* Orange color for buttons */
+      background-color: #ff9900;
+      /* Orange color for buttons */
       border: none;
       color: white;
     }
+
     .navigation-bar {
       position: absolute;
-      top: 50px; /* Adjust as needed */
+      top: 50px;
+      /* Adjust as needed */
       left: 50%;
       transform: translateX(-50%);
       z-index: 10;
       display: flex;
     }
+
     .mapboxgl-ctrl-bottom-left {
       position: absolute;
       bottom: 0.1%;
       left: 50%;
       transform: translate(-50%, -50%);
     }
+
     .map-style-buttons {
       position: absolute;
       top: 10px;
@@ -148,6 +164,7 @@
       z-index: 10;
       margin-right: 35px;
     }
+
     .map-style-buttons button {
       background-color: white;
       color: black;
@@ -158,6 +175,7 @@
       margin-bottom: 5px;
       cursor: pointer;
     }
+
     .add-marker-button {
       position: absolute;
       bottom: 10px;
@@ -171,12 +189,14 @@
       height: 30px;
       cursor: pointer;
     }
+
     .export-import-buttons {
       position: absolute;
       bottom: 50px;
       right: 10px;
       z-index: 10;
     }
+
     .export-import-buttons button {
       background-color: white;
       color: black;
@@ -186,75 +206,80 @@
       padding: 10px;
       border-radius: 5px;
     }
+
     #delete-button {
-  background-color: red;
-  color: white;
-  border: none;
-  cursor: pointer;
-  padding: 10px;
-  border-radius: 5px;
-  margin-bottom: 40px;
-}
-.modal {
+      background-color: red;
+      color: white;
+      border: none;
+      cursor: pointer;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 40px;
+    }
+
+    .modal {
       display: none;
       position: fixed;
-      z-index: 20; /* Increase z-index */
+      z-index: 20;
+      /* Increase z-index */
       left: 0;
       top: 0;
       width: 100%;
       height: 100%;
       overflow: auto;
       background-color: rgba(0, 0, 0, 0.5);
-}
+    }
 
-      /* Modal styles */
- /* CSS */
-.modal-content {
-  background-color: #fefefe;
-  margin: 15% auto;
-  padding: 20px;
-  border: 1px solid #888;
-  width: 80%;
-  max-width: 600px;
-  border-radius: 10px;
-  text-align: center;
-  color: orange;
-  overflow-wrap: break-word;
-  z-index: 1000;
-}
+    /* Modal styles */
+    /* CSS */
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 600px;
+      border-radius: 10px;
+      text-align: center;
+      color: orange;
+      overflow-wrap: break-word;
+      z-index: 1000;
+    }
 
-#copy-url-button {
-  background-color: orange;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  margin-top: 10px;
-  cursor: pointer;
-  border-radius: 5px;
-}
+    #copy-url-button {
+      background-color: orange;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin-top: 10px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
 
-#copy-url-button:hover {
-  background-color: darkorange;
-}
+    #copy-url-button:hover {
+      background-color: darkorange;
+    }
 
 
-  .close-button {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-  }
+    .close-button {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
 
-  .close-button:hover,
-  .close-button:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-  }
+    .close-button:hover,
+    .close-button:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
   </style>
 </head>
+
 <body>
-  <script src="https://cdn.jsdelivr.net/gh/jscastro76/threebox@v.2.2.2/dist/threebox.min.js" type="text/javascript"></script>
+  <script src="https://cdn.jsdelivr.net/gh/jscastro76/threebox@v.2.2.2/dist/threebox.min.js"
+    type="text/javascript"></script>
   <link href="https://cdn.jsdelivr.net/gh/jscastro76/threebox@v.2.2.2/dist/threebox.css" rel="stylesheet" />
   <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
 
@@ -292,7 +317,7 @@
     <input type="file" id="import-file" style="display: none;" />
   </div>
   <script>
-    
+
     mapboxgl.accessToken = "pk.eyJ1IjoicHVycGhhY3RzIiwiYSI6ImNsdzY1bzVvNzFwb3IyamxyOG1vY3oyM2gifQ.2LikTeWKwlWsAcEneBXW0Q";
     const map = new mapboxgl.Map({
       container: "map",
@@ -302,7 +327,7 @@
     });
 
 
-    
+
     map.on("load", () => {
 
       navigator.geolocation.getCurrentPosition(
@@ -334,7 +359,7 @@
       }
     );
 
-    
+
 
     map.on("style.load", () => {
 
@@ -353,9 +378,9 @@
           }, function (model) {
             const obj = model.setCoords([-79.3871, 43.6426]);
             obj.addTooltip("Craft Services is located at the CN Tower", true)
-            obj.set({ rotation: {x: 0, y: 0, z: 9999}, duration: 50000 })
+            obj.set({ rotation: { x: 0, y: 0, z: 9999 }, duration: 50000 })
             tb.add(obj);
-            
+
           });
         },
         render: function (gl, matrix) {
@@ -380,94 +405,91 @@
       { element: coneElement, color: "brown" },
     ];
     map.addControl(new mapboxgl.ScaleControl({
-    maxWidth: 250, // Adjust this value to extend the ruler by 5
-}), "bottom-left");
+      maxWidth: 250, // Adjust this value to extend the ruler by 5
+    }), "bottom-left");
 
     const draggables = [
-        {
-          elementId: "draggable-truck",
-          modelUrl: "https://raw.githubusercontent.com/namtonnest/3dmodels/main/truck.gltf",
-          color: 0xff0000, // Red color for truck
-          scale: { x: 3, y: 3, z: 2.7 }
-        },
-        {
-          elementId: "draggable-craft",
-          modelUrl: "https://raw.githubusercontent.com/namtonnest/3dmodels/main/food_truck.glb",
-          type: "gltf",
-          scale: { x: 6, y: 6, z: 5.4 }
-        },
-        {
-          elementId: "draggable-washroom",
-          modelUrl: "https://raw.githubusercontent.com/namtonnest/LocationLocations/main/Basecamp.glb",
-          scale: { x: 5, y: 5, z: 5 }
-        },
-        {
-          elementId: "draggable-utility",
-          modelUrl: "https://raw.githubusercontent.com/namtonnest/LocationLocations/main/SET.glb",
-          color: 0xff6a00, // Orange color for utility trailer
-          scale: { x: 15, y: 15, z: 5 }
-        },
-        {
-          elementId: "draggable-cone",
-          modelUrl: "https://raw.githubusercontent.com/namtonnest/3dmodels/main/Cone.glb", // Placeholder URL, replace with actual model URL
-          color: 0xff6a00, // Orange
-          scale: { x: 3, y: 3, z: 3 }
-        }
-      ];
+      {
+        elementId: "draggable-truck",
+        modelUrl: "https://raw.githubusercontent.com/namtonnest/3dmodels/main/truck.gltf",
+        color: 0xff0000, // Red color for truck
+        scale: { x: 3, y: 3, z: 2.7 }
+      },
+      {
+        elementId: "draggable-craft",
+        modelUrl: "https://raw.githubusercontent.com/namtonnest/3dmodels/main/food_truck.glb",
+        type: "gltf",
+        scale: { x: 6, y: 6, z: 5.4 }
+      },
+      {
+        elementId: "draggable-washroom",
+        modelUrl: "https://raw.githubusercontent.com/namtonnest/LocationLocations/main/Basecamp.glb",
+        scale: { x: 5, y: 5, z: 5 }
+      },
+      {
+        elementId: "draggable-utility",
+        modelUrl: "https://raw.githubusercontent.com/namtonnest/LocationLocations/main/SET.glb",
+        color: 0xff6a00, // Orange color for utility trailer
+        scale: { x: 15, y: 15, z: 5 }
+      },
+      {
+        elementId: "draggable-cone",
+        modelUrl: "https://raw.githubusercontent.com/namtonnest/3dmodels/main/Cone.glb", // Placeholder URL, replace with actual model URL
+        color: 0xff6a00, // Orange
+        scale: { x: 3, y: 3, z: 3 }
+      }
+    ];
 
-      draggables.forEach(({ elementId, modelUrl, color, scale }) => {
-  const draggable = document.getElementById(elementId);
+    draggables.forEach(({ elementId, modelUrl, color, scale }) => {
+      const draggable = document.getElementById(elementId);
 
-  let wasFakeEvent = false;
-  document.addEventListener("click", function (event) {
-    event.preventDefault();
-  });
+      let wasFakeEvent = false;
 
-  draggable.addEventListener("click", function (event) {
-    event.preventDefault();
-    const canvas = document.querySelector(".mapboxgl-canvas");
+      draggable.addEventListener("click", function (event) {
+        event.preventDefault();
+        const canvas = document.querySelector(".mapboxgl-canvas");
 
-    wasFakeEvent = true;
-    const fakeevent = new MouseEvent("click", {
-      clientX: event.clientX,
-      clientY: event.clientY,
-      bubbles: true,
-    });
+        wasFakeEvent = true;
+        // const fakeevent = new MouseEvent("click", {
+        //   clientX: event.clientX,
+        //   clientY: event.clientY,
+        //   bubbles: true,
+        // });
 
-    canvas.dispatchEvent(fakeevent);
-  });
-
-  map.on("click", (event) => {
-    event.preventDefault();
-
-    if (wasFakeEvent) {
-      const options = {
-        obj: modelUrl,
-        type: "glb",
-        scale: scale,
-        units: "meters",
-        rotation: { x: 90, y: 45, z: 0 },
-      };
-      const x = event.point.x;
-      const y = event.point.y;
-      const coords = map.unproject([x, y]);
-      tb.loadObj(options, (model) => {
-        model.setCoords([coords.lng, coords.lat]);
-        model.set({ rotation: {x: 0, y: 0, z: 9999}, duration: 50000 })
-        tb.add(model);
-
-        // Save model information
-        modelMarkers.push({
-          modelUrl: modelUrl,
-          color: color,
-          scale: scale,
-          coordinates: [coords.lng, coords.lat],
-        });
+        canvas.dispatchEvent(fakeevent);
       });
-      wasFakeEvent = false;
-    }
-  });
-});
+
+      map.on("click", (event) => {
+        event.preventDefault();
+
+        if (wasFakeEvent) {
+          const options = {
+            obj: modelUrl,
+            type: "glb",
+            scale: scale,
+            units: "meters",
+            rotation: { x: 90, y: 45, z: 0 },
+          };
+          const x = event.point.x;
+          const y = event.point.y;
+          const coords = map.unproject([x, y]);
+          tb.loadObj(options, (model) => {
+            model.setCoords([coords.lng, coords.lat]);
+            model.set({ rotation: { x: 0, y: 0, z: 9999 }, duration: 50000 })
+            tb.add(model);
+
+            // Save model information
+            modelMarkers.push({
+              modelUrl: modelUrl,
+              color: color,
+              scale: scale,
+              coordinates: [coords.lng, coords.lat],
+            });
+          });
+          wasFakeEvent = false;
+        }
+      });
+    });
     markerElements.forEach(({ element, color }) => {
       element.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", color);
@@ -549,7 +571,7 @@
           alert("Error fetching location data. Please try again later.");
         });
     });
-  
+
 
     document.getElementById("satellite-button").addEventListener("click", () => {
       map.setStyle("mapbox://styles/mapbox/satellite-v9");
@@ -569,79 +591,79 @@
       markers.push({ color: "default", lng: center.lng, lat: center.lat });
     });
 
-// JavaScript
-document.getElementById("export-button").addEventListener("click", () => {
-  const mapState = {
-    center: map.getCenter(),
-    zoom: map.getZoom(),
-    style: map.getStyle().sprite,
-    markers,
-    modelMarkers,
-  };
-  const encodedState = encodeURIComponent(JSON.stringify(mapState));
-  const url = `${window.location.origin}${window.location.pathname}?state=${encodedState}`;
-  
-  const modal = document.getElementById("generated-url-modal");
-  const generatedUrlElement = document.getElementById("generated-url");
-  const copyButton = document.getElementById("copy-url-button");
-  const closeButton = document.querySelector(".close-button");
+    // JavaScript
+    document.getElementById("export-button").addEventListener("click", () => {
+      const mapState = {
+        center: map.getCenter(),
+        zoom: map.getZoom(),
+        style: map.getStyle().sprite,
+        markers,
+        modelMarkers,
+      };
+      const encodedState = encodeURIComponent(JSON.stringify(mapState));
+      const url = `${window.location.origin}${window.location.pathname}?state=${encodedState}`;
 
-  generatedUrlElement.innerHTML = `<textarea id="url-text" readonly>${url}</textarea>`;
-  modal.style.display = "block";
+      const modal = document.getElementById("generated-url-modal");
+      const generatedUrlElement = document.getElementById("generated-url");
+      const copyButton = document.getElementById("copy-url-button");
+      const closeButton = document.querySelector(".close-button");
 
-  closeButton.onclick = function() {
-    modal.style.display = "none";
-  };
+      generatedUrlElement.innerHTML = `<textarea id="url-text" readonly>${url}</textarea>`;
+      modal.style.display = "block";
 
-  copyButton.onclick = function() {
-    const urlText = document.getElementById("url-text");
-    urlText.select();
-    document.execCommand("copy");
-    alert("URL copied to clipboard!");
-  };
+      closeButton.onclick = function () {
+        modal.style.display = "none";
+      };
 
-  window.onclick = function(event) {
-    if (event.target == modal) {
-      modal.style.display = "none";
-    }
-  };
-});
+      copyButton.onclick = function () {
+        const urlText = document.getElementById("url-text");
+        urlText.select();
+        document.execCommand("copy");
+        alert("URL copied to clipboard!");
+      };
 
-
-function loadMapState(state) {
-  const mapState = JSON.parse(decodeURIComponent(state));
-  map.setCenter(mapState.center);
-  map.setZoom(mapState.zoom);
-  map.setStyle(`mapbox://styles/mapbox/${mapState.style}`);
-
-  mapState.markers.forEach(({ color, lng, lat }) => {
-    new mapboxgl.Marker({ color }).setLngLat([lng, lat]).addTo(map);
-  });
-
-  mapState.modelMarkers.forEach(({ modelUrl, color, scale, coordinates }) => {
-    const options = {
-      obj: modelUrl,
-      type: "gltf",
-      scale: scale,
-      units: "meters",
-      rotation: { x: 90, y: 45, z: 0 },
-    };
-    tb.loadObj(options, (model) => {
-      model.setCoords(coordinates);
-      tb.add(model);
+      window.onclick = function (event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      };
     });
-  });
-}
 
-function checkForSavedState() {
-  const params = new URLSearchParams(window.location.search);
-  const state = params.get("state");
-  if (state) {
-    loadMapState(state);
-  }
-}
 
-checkForSavedState();
+    function loadMapState(state) {
+      const mapState = JSON.parse(decodeURIComponent(state));
+      map.setCenter(mapState.center);
+      map.setZoom(mapState.zoom);
+      map.setStyle(`mapbox://styles/mapbox/${mapState.style}`);
+
+      mapState.markers.forEach(({ color, lng, lat }) => {
+        new mapboxgl.Marker({ color }).setLngLat([lng, lat]).addTo(map);
+      });
+
+      mapState.modelMarkers.forEach(({ modelUrl, color, scale, coordinates }) => {
+        const options = {
+          obj: modelUrl,
+          type: "gltf",
+          scale: scale,
+          units: "meters",
+          rotation: { x: 90, y: 45, z: 0 },
+        };
+        tb.loadObj(options, (model) => {
+          model.setCoords(coordinates);
+          tb.add(model);
+        });
+      });
+    }
+
+    function checkForSavedState() {
+      const params = new URLSearchParams(window.location.search);
+      const state = params.get("state");
+      if (state) {
+        loadMapState(state);
+      }
+    }
+
+    checkForSavedState();
 
 
 
@@ -651,68 +673,69 @@ checkForSavedState();
     });
 
     document.getElementById("import-file").addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const data = JSON.parse(event.target.result);
-      if (data.markers) {
-        data.markers.forEach(({ color, lng, lat }) => {
-          const marker = new mapboxgl.Marker({ color }).setLngLat([lng, lat]).addTo(map);
-          markers.push({ color, lng, lat });
-        });
-      }
-      if (data.modelMarkers) {
-        data.modelMarkers.forEach(({ modelUrl, color, scale, coordinates }) => {
-          const options = {
-            obj: modelUrl,
-            type: "gltf",
-            scale: scale,
-            units: "meters",
-            rotation: { x: 90, y: 45, z: 0 },
-          };
-          tb.loadObj(options, (model) => {
-            model.setCoords(coordinates);
-            model.traverse((node) => {
-              if (node.isMesh) {
-                node.material = new THREE.MeshStandardMaterial({
-                  color: color,
-                  roughness: 0.5,
-                  metalness: 0.5,
-                });
-              }
-            });
-            tb.add(model);
-          });
-        });
-      }
-    };
-    reader.readAsText(file);
-  }
-});
-
       const file = e.target.files[0];
       if (file) {
         const reader = new FileReader();
         reader.onload = (event) => {
           const data = JSON.parse(event.target.result);
-          data.forEach(({ color, lng, lat }) => {
-            const marker = new mapboxgl.Marker({ color }).setLngLat([lng, lat]).addTo(map);
-            markers.push({ color, lng, lat });
-          });
+          if (data.markers) {
+            data.markers.forEach(({ color, lng, lat }) => {
+              const marker = new mapboxgl.Marker({ color }).setLngLat([lng, lat]).addTo(map);
+              markers.push({ color, lng, lat });
+            });
+          }
+          if (data.modelMarkers) {
+            data.modelMarkers.forEach(({ modelUrl, color, scale, coordinates }) => {
+              const options = {
+                obj: modelUrl,
+                type: "gltf",
+                scale: scale,
+                units: "meters",
+                rotation: { x: 90, y: 45, z: 0 },
+              };
+              tb.loadObj(options, (model) => {
+                model.setCoords(coordinates);
+                model.traverse((node) => {
+                  if (node.isMesh) {
+                    node.material = new THREE.MeshStandardMaterial({
+                      color: color,
+                      roughness: 0.5,
+                      metalness: 0.5,
+                    });
+                  }
+                });
+                tb.add(model);
+              });
+            });
+          }
         };
         reader.readAsText(file);
       }
+    });
+
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const data = JSON.parse(event.target.result);
+        data.forEach(({ color, lng, lat }) => {
+          const marker = new mapboxgl.Marker({ color }).setLngLat([lng, lat]).addTo(map);
+          markers.push({ color, lng, lat });
+        });
+      };
+      reader.readAsText(file);
+    }
     ;
   </script>
-<div id="generated-url-modal" class="modal">
-  <div class="modal-content">
-    <span class="close-button">&times;</span>
-    <p id="generated-url" style="color: orange; overflow-wrap: break-word;"></p>
-    <button id="copy-url-button">Copy URL</button>
+  <div id="generated-url-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <p id="generated-url" style="color: orange; overflow-wrap: break-word;"></p>
+      <button id="copy-url-button">Copy URL</button>
+    </div>
   </div>
-</div>
-<button id="delete-button" class="export-import-buttons">Delete Mode</button>
+  <button id="delete-button" class="export-import-buttons">Delete Mode</button>
 
 </body>
+
 </html>
