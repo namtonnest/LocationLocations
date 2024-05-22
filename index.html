@@ -506,48 +506,6 @@
 
     map.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-    // Add navigation functionality
-
-
-            // Get user's current location
-            navigator.geolocation.getCurrentPosition(
-              position => {
-                const { longitude, latitude } = position.coords;
-
-                // Include Mapbox Directions plugin
-                const directions = new MapboxDirections({
-                  accessToken: mapboxgl.accessToken,
-                  unit: 'metric',
-                  profile: 'mapbox/driving-traffic',
-                  controls: {
-                    profileSwitcher: false,
-                    instructions: false,
-                    inputs: false,
-                    zoom: false // Disable zoom control in Mapbox Directions plugin
-                  }
-                });
-
-                // Add Mapbox Directions control to the map
-                map.addControl(directions, 'top-left');
-
-                // Set origin and destination for navigation
-                directions.setOrigin([longitude, latitude]);
-                directions.setDestination([lng, lat]);
-              },
-              error => {
-                console.error("Error getting user location:", error);
-                alert("Error getting user location. Please enable location services and try again.");
-              }
-            );
-          } else {
-            alert("Location not found!");
-          }
-        })
-        .catch(error => {
-          console.error("Error fetching location data:", error);
-          alert("Error fetching location data. Please try again later.");
-        });
-    });
 
 
     document.getElementById("satellite-button").addEventListener("click", () => {
