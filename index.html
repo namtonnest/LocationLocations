@@ -356,12 +356,11 @@
             obj: "https://raw.githubusercontent.com/namtonnest/3dmodels/main/Wave%Hip%Hop%Dance.fbx",
             scale: 10,
             units: "meters",
-            rotation: { x: 90, y: 180, z: 0 },
             anchor: "center",
           }, function (model) {
             const obj = model.setCoords([-79.3871, 43.6426]);
             obj.addTooltip("Craft Services is located at the CN Tower", true)
-            obj.set({ rotation: { x: 0, y: 0, z: 9999 }, duration: 50000 })
+          
             tb.add(obj);
 
           });
@@ -451,14 +450,14 @@
             type: "glb",
             scale: scale,
             units: "meters",
-            rotation: { x: 90, y: 45, z: 0 },
+            
           };
           const x = event.point.x;
           const y = event.point.y;
           const coords = map.unproject([x, y]);
           tb.loadObj(options, (model) => {
             model.setCoords([coords.lng, coords.lat]);
-            model.set({ rotation: { x: 0, y: 0, z: 9999 }, duration: 50000 })
+  
             tb.add(model);
 
             // Save model information
@@ -576,7 +575,7 @@
           type: "gltf",
           scale: scale,
           units: "meters",
-          rotation: { x: 90, y: 45, z: 0 },
+
         };
         tb.loadObj(options, (model) => {
           model.setCoords(coordinates);
@@ -621,7 +620,7 @@
                 type: "gltf",
                 scale: scale,
                 units: "meters",
-                rotation: { x: 90, y: 45, z: 0 },
+        
               };
               tb.loadObj(options, (model) => {
                 model.setCoords(coordinates);
