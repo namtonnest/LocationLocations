@@ -1275,33 +1275,31 @@ async function listImageRecords() {
     });
 }
 
-// UI state for placing an image
-let pendingImageDataUrl = null;
+// UI state for placing an image: store the selected File/Blob (more efficient than data URLs)
+let pendingImageBlob = null;
 
 addImageBtn.addEventListener('click', () => { fileInput.click(); });
 
 fileInput.addEventListener('change', async (ev) => {
     const f = ev.target.files && ev.target.files[0];
     if (!f) return;
-    // read as data URL (suitable for small/medium images)
-    const reader = new FileReader();
-    reader.onload = () => {
-        pendingImageDataUrl = reader.result;
-        alert('Now click on the map to place the image');
-    };
-    reader.readAsDataURL(f);
+    // keep the original File/Blob to store directly in IndexedDB (more efficient)
+    pendingImageBlob = f;
+    alert('Now click on the map to place the image');
     // reset input
     fileInput.value = '';
 });
 
 // place image on map when user clicks while pendingImageDataUrl set
 map.on('click', async (e) => {
-    if (!pendingImageDataUrl) return;
+    if (!pendingImageBlob) return;
     const lngLat = [e.lngLat.lng, e.lngLat.lat];
     const id = 'img_' + Date.now();
+    // create an object URL for previewing the Blob
+    const objectUrl = URL.createObjectURL(pendingImageBlob);
     // create marker element (thumbnail)
     const img = document.createElement('img');
-    img.src = pendingImageDataUrl;
+    img.src = objectUrl;
     img.style.width = '120px';
     img.style.height = '80px';
     img.style.objectFit = 'cover';
@@ -1312,7 +1310,7 @@ map.on('click', async (e) => {
     // popup with full image and delete button
     const popupDiv = document.createElement('div');
     const full = document.createElement('img');
-    full.src = pendingImageDataUrl;
+    full.src = objectUrl;
     full.style.maxWidth = '300px';
     full.style.display = 'block';
     full.style.marginBottom = '6px';
@@ -1325,36 +1323,78 @@ map.on('click', async (e) => {
     const popup = new mapboxgl.Popup().setDOMContent(popupDiv).setMaxWidth('320px');
     marker.setPopup(popup);
 
-    // save to IndexedDB
-    const rec = { id, dataUrl: pendingImageDataUrl, lng: lngLat[0], lat: lngLat[1], created: Date.now() };
+    // save Blob to IndexedDB (store as 'blob' field). IndexedDB supports Blob/File objects.
+    const rec = { id, blob: pendingImageBlob, lng: lngLat[0], lat: lngLat[1], created: Date.now() };
     try { await saveImageRecord(rec); } catch (e) { console.warn('Failed saving image to IndexedDB', e); }
 
-    // wire delete
+    // wire delete (also revoke object URL when removed)
     delBtn.addEventListener('click', async () => {
-        try { await deleteImageRecord(id); marker.remove(); } catch (e) { console.warn(e); }
+        try { await deleteImageRecord(id); marker.remove(); URL.revokeObjectURL(objectUrl); } catch (e) { console.warn(e); }
     });
 
     // clear pending
-    pendingImageDataUrl = null;
+    pendingImageBlob = null;
 });
 
-// load saved images on startup
+// migrate legacy dataUrl records to Blob objects in IndexedDB
+async function migrateDataUrlToBlob() {
+    try {
+        const rows = await listImageRecords();
+        for (const r of rows) {
+            // only migrate records that have dataUrl and no blob
+            if (r.dataUrl && !r.blob) {
+                try {
+                    // convert dataURL (base64) to Blob
+                    const dataUrl = r.dataUrl;
+                    const parts = dataUrl.split(',');
+                    const meta = parts[0] || '';
+                    const b64 = parts[1] || '';
+                    const mimeMatch = meta.match(/:(.*?);/);
+                    const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+                    const byteString = atob(b64);
+                    const ab = new Uint8Array(byteString.length);
+                    for (let i = 0; i < byteString.length; i++) ab[i] = byteString.charCodeAt(i);
+                    const blob = new Blob([ab], { type: mime });
+                    // write back as blob and remove dataUrl to save space
+                    const newRec = Object.assign({}, r);
+                    newRec.blob = blob;
+                    delete newRec.dataUrl;
+                    await saveImageRecord(newRec);
+                    console.log('Migrated image record to blob:', r.id);
+                } catch (e) {
+                    console.warn('Failed migrating image record', r.id, e);
+                    // leave original record unchanged on error
+                }
+            }
+        }
+    } catch (e) {
+        console.warn('Migration failed', e);
+    }
+}
+
+// load saved images on startup (migration runs first)
 (async function restoreImages() {
+    try { await migrateDataUrlToBlob(); } catch (e) { /* ignore migration errors */ }
     try {
         const rows = await listImageRecords();
         for (const r of rows) {
             try {
                 const img = document.createElement('img');
-                img.src = r.dataUrl;
+                // support legacy dataUrl records, otherwise create an object URL from stored Blob
+                let src = null;
+                if (r.dataUrl) src = r.dataUrl;
+                else if (r.blob) src = URL.createObjectURL(r.blob);
+                if (!src) continue;
+                img.src = src;
                 img.style.width = '120px'; img.style.height = '80px'; img.style.objectFit = 'cover'; img.style.borderRadius = '6px';
                 const marker = new mapboxgl.Marker({ element: img }).setLngLat([r.lng, r.lat]).addTo(map);
                 const popupDiv = document.createElement('div');
-                const full = document.createElement('img'); full.src = r.dataUrl; full.style.maxWidth = '300px'; full.style.display = 'block'; full.style.marginBottom = '6px';
+                const full = document.createElement('img'); full.src = src; full.style.maxWidth = '300px'; full.style.display = 'block'; full.style.marginBottom = '6px';
                 popupDiv.appendChild(full);
                 const delBtn = document.createElement('button'); delBtn.textContent = 'Remove image'; delBtn.className = 'btn secondary'; popupDiv.appendChild(delBtn);
                 const popup = new mapboxgl.Popup().setDOMContent(popupDiv).setMaxWidth('320px');
                 marker.setPopup(popup);
-                delBtn.addEventListener('click', async () => { try { await deleteImageRecord(r.id); marker.remove(); } catch (e) { console.warn(e); } });
+                delBtn.addEventListener('click', async () => { try { await deleteImageRecord(r.id); marker.remove(); if (r.blob) URL.revokeObjectURL(src); } catch (e) { console.warn(e); } });
             } catch (e) { console.warn('Failed restoring image', e); }
         }
     } catch (e) { console.warn('Failed listing image records', e); }
