@@ -35,7 +35,7 @@
     #map-note{position:absolute; top:56px; left:18px; z-index:6; background: rgba(255,255,255,0.95); padding:8px 10px; border-radius:8px; display:none; font-size:13px; box-shadow:0 6px 18px rgba(15,23,36,0.14)}
 
     /* Sidebar (moved to right side) */
-    #sidebar{position:absolute; right:0; top:0; bottom:0; width:300px; background:linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,250,0.98)); z-index:8; padding:14px; overflow:auto; box-shadow:-2px 0 18px rgba(2,6,23,0.12); border-left:1px solid rgba(2,6,23,0.04)}
+    #sidebar{position:absolute; right:0; top:0; bottom:0; width:300px; background:linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,250,0.98)); z-index:4; padding:14px; overflow:auto; box-shadow:-2px 0 18px rgba(2,6,23,0.12); border-left:1px solid rgba(2,6,23,0.04)}
     #sidebar.hidden{display:none}
     #sidebar h3{margin:0 0 8px 0; font-size:16px; color:var(--ui-text)}
     .model-row{padding:10px; border-radius:8px; display:flex; justify-content:space-between; gap:8px; align-items:flex-start}
@@ -43,26 +43,7 @@
     .model-row.selected{background:#eef9ff}
     .model-row .label{font-weight:600; color:var(--ui-text)}
     .model-row .info{font-size:12px; color:rgba(255,106,0,0.85); margin-top:6px}
-    /* Make action buttons in the sidebar easier to tap/click (larger hit target) */
     .model-row button{background:transparent; border:none; color:var(--ui-text); cursor:pointer; font-weight:600}
-    .model-row .model-actions button{
-        padding:8px 10px; /* larger tap target */
-        min-width:56px;
-        min-height:36px;
-        border-radius:8px;
-        display:inline-flex;
-        align-items:center;
-        justify-content:center;
-        gap:6px;
-        border:1px solid transparent;
-        transition: background .12s ease, border-color .12s ease, transform .06s ease;
-    }
-    .model-row .model-actions button:hover{ background: rgba(6,182,212,0.08); border-color: rgba(6,182,212,0.12); transform: translateY(-1px); }
-    /* Icon button styles for rename/remove */
-    .model-row .model-actions button svg{ display:inline-block; vertical-align:middle; color:var(--ui-text); }
-    .model-row .model-actions button span{ color:var(--ui-text); font-weight:600; font-size:13px }
-    .model-row .model-actions .remove-btn{ background:#fee2e2; color:#7f1d1d; border-color: #fecaca }
-    .model-row .model-actions .remove-btn:hover{ background:#fecaca; }
     .model-left{display:flex;flex-direction:column}
     .model-actions{display:flex;gap:8px;align-items:center}
     .rename-input{width:140px;padding:6px;border-radius:6px;border:1px solid rgba(2,6,23,0.06)}
@@ -114,20 +95,11 @@
                 <div style="display:flex;gap:8px;align-items:center">
                     <button id="open-library-btn" class="btn secondary">Models</button>
                     <button id="open-models-btn" class="btn secondary">Info</button>
-                    <div class="dropdown" style="position:relative">
-                        <button id="saving-toggle" class="btn secondary">Saving ▾</button>
-                        <div id="saving-menu" class="dropdown-menu" style="display:none; position:absolute; right:0; top:40px; z-index:20; min-width:160px;">
-                            <button id="share-btn" class="btn" style="display:block;width:100%;text-align:left;padding:8px 12px;border-radius:8px;margin-bottom:6px">Share</button>
-                            <button id="export-btn" class="btn" style="display:block;width:100%;text-align:left;padding:8px 12px;border-radius:8px;margin-bottom:6px">Export</button>
-                            <button id="import-btn" class="btn" style="display:block;width:100%;text-align:left;padding:8px 12px;border-radius:8px">Import</button>
-                        </div>
-                    </div>
+                    <button id="share-btn" class="btn secondary">Share</button>
                 </div>
             </div>
             <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
                 <button id="add-image-btn" class="btn" style="padding:6px 10px;font-weight:600;">Add image</button>
-                <button id="save-images-btn" class="btn secondary" style="padding:6px 10px;display:none">Save images</button>
-                <button id="discard-images-btn" class="btn secondary" style="padding:6px 10px;display:none">Discard images</button>
                 <button id="add-model-btn" class="btn" style="padding:6px 10px;">Add model</button>
                 <button id="desktop-controls-btn" class="btn" style="padding:6px 10px;display:none">Controls</button>
             </div>
@@ -198,31 +170,15 @@
 
     // topbar buttons exist in DOM; just reference them
     const shareBtn = document.getElementById('share-btn');
-    const exportBtn = document.getElementById('export-btn');
-    const importBtn = document.getElementById('import-btn');
 
-    // Saving dropdown toggle
-    const savingToggle = document.getElementById('saving-toggle');
-    const savingMenu = document.getElementById('saving-menu');
-    function closeSavingMenu() { if (savingMenu) savingMenu.style.display = 'none'; }
-    function openSavingMenu() { if (savingMenu) savingMenu.style.display = 'block'; }
-    if (savingToggle) {
-        savingToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (!savingMenu) return;
-            savingMenu.style.display = savingMenu.style.display === 'block' ? 'none' : 'block';
-        });
-    }
-    // close when clicking outside
-    document.addEventListener('click', (e) => { if (!savingMenu) return; if (savingMenu.style.display === 'block') { if (!savingMenu.contains(e.target) && e.target !== savingToggle) closeSavingMenu(); } });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSavingMenu(); });
-
-    // hidden file input for importing JSON state
-    const importFileInput = document.createElement('input');
-    importFileInput.type = 'file';
-    importFileInput.accept = 'application/json';
-    importFileInput.style.display = 'none';
-    document.body.appendChild(importFileInput);
+    // Optional server endpoints for short-link storage.
+    // Leave empty to keep using client-side compressed URLs (?state=...).
+    // If you deploy a server (examples described in the UI or README), set these
+    // to the deployed endpoints that accept/return JSON { id, payload }.
+    // Example: const SERVER_API_SAVE = 'https://my-func.example.com/api/save';
+    //          const SERVER_API_LOAD = 'https://my-func.example.com/api/load';
+    const SERVER_API_SAVE = ''; // set to your /api/save endpoint
+    const SERVER_API_LOAD = ''; // set to your /api/load endpoint
 
     const note = document.getElementById('map-note');
 
@@ -740,87 +696,42 @@
         }
     }
 
-    shareBtn.addEventListener('click', () => {
+    shareBtn.addEventListener('click', async () => {
         try {
             const data = serializePlacedModels();
             const payload = JSON.stringify({ mapCenter: map.getCenter(), zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing(), models: data });
             // compress payload to reduce URL length
             const compressed = LZString.compressToBase64(payload);
-            const url = location.origin + location.pathname + '?state=' + encodeURIComponent(compressed);
-            navigator.clipboard.writeText(url).then(() => alert('Share URL copied to clipboard'));
-        } catch (e) { alert('Failed to create share URL: ' + e.message); }
-    });
 
-    // Export current map state as JSON file download
-    if (exportBtn) exportBtn.addEventListener('click', async () => {
-        try {
-            const data = serializePlacedModels();
-            // collect image records and convert blobs to dataUrls for inclusion
-            let images = [];
-            try {
-                const rows = await listImageRecords();
-                for (const r of rows) {
-                    try {
-                        let dataUrl = null;
-                        if (r.dataUrl) dataUrl = r.dataUrl;
-                        else if (r.blob) dataUrl = await blobToDataUrl(r.blob);
-                        if (!dataUrl) continue;
-                        images.push({ id: r.id, dataUrl, lng: r.lng, lat: r.lat, created: r.created });
-                    } catch (e) { console.warn('Failed converting image to dataUrl for export', r.id, e); }
-                }
-            } catch (e) { console.warn('Failed reading images for export', e); }
-
-            const payloadObj = { mapCenter: map.getCenter(), zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing(), models: data, images };
-            const payload = JSON.stringify(payloadObj, null, 2);
-            const blob = new Blob([payload], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'map-state.json';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            setTimeout(() => URL.revokeObjectURL(url), 1500);
-        } catch (e) { alert('Failed to export state: ' + e.message); }
-    });
-
-    // Import map state from a JSON file
-    if (importBtn) importBtn.addEventListener('click', () => importFileInput.click());
-    importFileInput.addEventListener('change', async (ev) => {
-        const f = ev.target.files && ev.target.files[0];
-        if (!f) return;
-        try {
-            const text = await f.text();
-            const parsed = JSON.parse(text);
-            // Basic validation
-            if (!parsed || !parsed.models) return alert('Invalid map state file.');
-            // If images are included, save them into IndexedDB (as Blobs) and add markers
-            if (parsed.images && Array.isArray(parsed.images)) {
-                for (const imgRec of parsed.images) {
-                    try {
-                        const id = imgRec.id || ('imp_' + Date.now() + '_' + Math.floor(Math.random()*1000));
-                        const blob = dataUrlToBlob(imgRec.dataUrl);
-                        const rec = { id, blob, lng: imgRec.lng, lat: imgRec.lat, created: imgRec.created || Date.now() };
-                        await saveImageRecord(rec);
-                        // render marker
-                        try {
-                            const imgEl = document.createElement('img'); const objUrl = URL.createObjectURL(blob); imgEl.src = objUrl; imgEl.style.width = '120px'; imgEl.style.height = '80px'; imgEl.style.objectFit = 'cover'; imgEl.style.borderRadius = '6px';
-                            const marker = new mapboxgl.Marker({ element: imgEl }).setLngLat([rec.lng, rec.lat]).addTo(map);
-                            registerObjectUrl(rec.id, objUrl, marker);
-                            const popupDiv = document.createElement('div'); const full = document.createElement('img'); full.src = objUrl; full.style.maxWidth = '300px'; full.style.display='block'; full.style.marginBottom='6px'; popupDiv.appendChild(full);
-                            const delBtn = document.createElement('button'); delBtn.textContent = 'Remove image'; delBtn.className = 'btn secondary'; popupDiv.appendChild(delBtn);
-                            const popup = new mapboxgl.Popup().setDOMContent(popupDiv).setMaxWidth('320px'); marker.setPopup(popup);
-                            delBtn.addEventListener('click', async () => { try { await deleteImageRecord(rec.id); marker.remove(); revokeObjectUrlForId(rec.id); } catch (e) { console.warn(e); } });
-                        } catch (e) { console.warn('Failed to render imported image marker', e); }
-                    } catch (e) { console.warn('Failed saving imported image', e); }
+            // If a server save endpoint is configured, POST the compressed payload and
+            // expect a short id in response. Otherwise fall back to creating the
+            // compressed ?state= URL (current behavior).
+            if (SERVER_API_SAVE) {
+                try {
+                    const res = await fetch(SERVER_API_SAVE, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ payload: compressed })
+                    });
+                    if (!res.ok) throw new Error('Server returned ' + res.status);
+                    const j = await res.json();
+                    if (j && j.id) {
+                        const shortUrl = location.origin + location.pathname + '?id=' + encodeURIComponent(j.id);
+                        await navigator.clipboard.writeText(shortUrl);
+                        return alert('Short share URL copied to clipboard');
+                    } else {
+                        throw new Error('Invalid server response');
+                    }
+                } catch (e) {
+                    console.warn('Server save failed, falling back to long URL', e);
+                    // fall through to client-only fallback
                 }
             }
-            // Save state into localStorage and call loadState to restore models
-            localStorage.setItem('map_saved_state', JSON.stringify(parsed));
-            setTimeout(() => { loadState(); }, 300);
-        } catch (e) { alert('Failed to import state: ' + e.message); }
-        // reset input
-        importFileInput.value = '';
+
+            const url = location.origin + location.pathname + '?state=' + encodeURIComponent(compressed);
+            navigator.clipboard.writeText(url)
+                .then(() => alert('Share URL copied to clipboard'))
+                .catch(() => alert('Failed to copy URL to clipboard'));
+        } catch (e) { alert('Failed to create share URL: ' + e.message); }
     });
 
     // Try to restore state from URL param 'state' on load
@@ -828,8 +739,27 @@
         try {
             const params = new URLSearchParams(window.location.search);
             const s = params.get('state');
+            const id = params.get('id');
+            // If server load endpoint configured and ?id=... present, try fetching
+            if (SERVER_API_LOAD && id) {
+                (async () => {
+                    try {
+                        const res = await fetch(SERVER_API_LOAD + '?id=' + encodeURIComponent(id));
+                        if (!res.ok) throw new Error('Server returned ' + res.status);
+                        const j = await res.json();
+                        if (j && j.payload) {
+                            const decompressed = LZString.decompressFromBase64(j.payload);
+                            if (!decompressed) { console.warn('Failed to decompress server payload'); return; }
+                            const parsed = JSON.parse(decompressed);
+                            localStorage.setItem('map_saved_state', JSON.stringify(parsed));
+                            setTimeout(() => { loadState(); }, 500);
+                        }
+                    } catch (e) { console.warn('Failed to load state from server', e); }
+                })();
+                return;
+            }
             if (!s) return;
-            // decompress state from base64
+            // decompress state from base64 (client-only flow)
             const decompressed = LZString.decompressFromBase64(decodeURIComponent(s));
             if (!decompressed) { console.warn('Failed to decompress state'); return; }
             const parsed = JSON.parse(decompressed);
@@ -915,18 +845,8 @@
             const actions = document.createElement('div');
             actions.className = 'model-actions';
 
-            // Rename button with pencil icon
             const renameBtn = document.createElement('button');
-            renameBtn.className = 'rename-btn';
-            renameBtn.title = 'Rename';
-            renameBtn.setAttribute('aria-label', 'Rename model');
-            renameBtn.innerHTML = `
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                </svg>
-                <span style="margin-left:6px">Rename</span>
-            `;
+            renameBtn.textContent = 'Rename';
             renameBtn.addEventListener('click', () => {
                 const input = document.createElement('input');
                 input.type = 'text';
@@ -939,20 +859,8 @@
             });
             actions.appendChild(renameBtn);
 
-            // Remove button with trash icon
             const delBtn = document.createElement('button');
-            delBtn.className = 'remove-btn';
-            delBtn.title = 'Remove';
-            delBtn.setAttribute('aria-label', 'Remove model');
-            delBtn.innerHTML = `
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
-                    <path d="M10 11v6"></path>
-                    <path d="M14 11v6"></path>
-                </svg>
-                <span style="margin-left:6px">Remove</span>
-            `;
+            delBtn.textContent = 'Remove';
             delBtn.addEventListener('click', () => removeModel(entry.id));
             actions.appendChild(delBtn);
 
@@ -1421,115 +1329,38 @@ async function listImageRecords() {
         req.onerror = () => reject(req.error);
     });
 }
-
-// UI state for placing an image: store the selected File/Blob (more efficient than data URLs)
 let pendingImageBlob = null;
-// Pending image markers placed but not yet persisted to IndexedDB
-const pendingImageRecords = []; // { id, blob, lng, lat, created, marker, saved }
-
-const saveImagesBtn = document.getElementById('save-images-btn');
-const discardImagesBtn = document.getElementById('discard-images-btn');
-
-function updatePendingButtonsVisibility() {
-    const hasPending = pendingImageRecords.length > 0;
-    if (saveImagesBtn) saveImagesBtn.style.display = hasPending ? 'inline-flex' : 'none';
-    if (discardImagesBtn) discardImagesBtn.style.display = hasPending ? 'inline-flex' : 'none';
-}
-
-// Save all pending image records to IndexedDB
-async function savePendingImages() {
-    if (!pendingImageRecords.length) return;
-    let savedCount = 0;
-    for (const rec of pendingImageRecords.slice()) {
-        try {
-            await saveImageRecord({ id: rec.id, blob: rec.blob, lng: rec.lng, lat: rec.lat, created: rec.created });
-            rec.saved = true;
-            savedCount++;
-            // remove from pending list
-            const i = pendingImageRecords.findIndex(r => r.id === rec.id);
-            if (i !== -1) pendingImageRecords.splice(i, 1);
-        } catch (e) { console.warn('Failed saving pending image', rec.id, e); }
-    }
-    updatePendingButtonsVisibility();
-    alert('Saved ' + savedCount + ' image(s)');
-}
-
-// Discard all pending images (remove markers and revoke URLs)
-function discardPendingImages() {
-    for (const rec of pendingImageRecords.slice()) {
-        try { if (rec.marker) rec.marker.remove(); } catch (e) {}
-        try { revokeObjectUrlForId(rec.id); } catch (e) {}
-    }
-    pendingImageRecords.length = 0;
-    updatePendingButtonsVisibility();
-}
-
-if (saveImagesBtn) saveImagesBtn.addEventListener('click', savePendingImages);
-if (discardImagesBtn) discardImagesBtn.addEventListener('click', discardPendingImages);
-
-// Registry to track object URLs and associated markers so we can revoke them when removed
-const objectUrlRegistry = new Map(); // id -> { url, marker }
-
-function registerObjectUrl(id, url, marker) {
-    try { objectUrlRegistry.set(id, { url, marker }); } catch (e) { /* ignore */ }
-}
-
-function revokeObjectUrlForId(id) {
-    try {
-        const rec = objectUrlRegistry.get(id);
-        if (rec) {
-            try { URL.revokeObjectURL(rec.url); } catch (e) {}
-            objectUrlRegistry.delete(id);
-        }
-    } catch (e) { console.warn('Failed revoking object URL for', id, e); }
-}
-
-function revokeAllObjectUrls() {
-    try {
-        for (const [id, rec] of objectUrlRegistry.entries()) {
-            try { URL.revokeObjectURL(rec.url); } catch (e) {}
-        }
-        objectUrlRegistry.clear();
-    } catch (e) { console.warn('Failed revoking all object URLs', e); }
-}
-
-// Revoke any object URLs on page unload to free memory
-window.addEventListener('beforeunload', () => { revokeAllObjectUrls(); });
 
 addImageBtn.addEventListener('click', () => { fileInput.click(); });
 
 fileInput.addEventListener('change', async (ev) => {
     const f = ev.target.files && ev.target.files[0];
     if (!f) return;
-    // keep the original File/Blob to store directly in IndexedDB (more efficient)
     pendingImageBlob = f;
     alert('Now click on the map to place the image');
     // reset input
     fileInput.value = '';
 });
-
-// place image on map when user clicks while pendingImageDataUrl set
+    fileInput.value = '';
+// place image on map when user clicks while pendingImageBlob set
 map.on('click', async (e) => {
     if (!pendingImageBlob) return;
     const lngLat = [e.lngLat.lng, e.lngLat.lat];
     const id = 'img_' + Date.now();
-    // create an object URL for previewing the Blob
-    const objectUrl = URL.createObjectURL(pendingImageBlob);
     // create marker element (thumbnail)
     const img = document.createElement('img');
-    img.src = objectUrl;
+    img.src = URL.createObjectURL(pendingImageBlob);
     img.style.width = '120px';
     img.style.height = '80px';
     img.style.objectFit = 'cover';
     img.style.borderRadius = '6px';
 
     const marker = new mapboxgl.Marker({ element: img }).setLngLat(lngLat).addTo(map);
-    registerObjectUrl(id, objectUrl, marker);
 
     // popup with full image and delete button
     const popupDiv = document.createElement('div');
     const full = document.createElement('img');
-    full.src = objectUrl;
+    full.src = URL.createObjectURL(pendingImageBlob);
     full.style.maxWidth = '300px';
     full.style.display = 'block';
     full.style.marginBottom = '6px';
@@ -1542,127 +1373,66 @@ map.on('click', async (e) => {
     const popup = new mapboxgl.Popup().setDOMContent(popupDiv).setMaxWidth('320px');
     marker.setPopup(popup);
 
-    // create a pending record (do NOT save to IndexedDB automatically)
-    const rec = { id, blob: pendingImageBlob, lng: lngLat[0], lat: lngLat[1], created: Date.now(), marker, saved: false };
-    pendingImageRecords.push(rec);
-    registerObjectUrl(id, objectUrl, marker);
+    // save to IndexedDB
+    const rec = { id, blob: pendingImageBlob, lng: lngLat[0], lat: lngLat[1], created: Date.now() };
+    try { await saveImageRecord(rec); } catch (e) { console.warn('Failed saving image to IndexedDB', e); }
 
-    // wire delete: if pending, remove from pending list and remove marker; if saved, delete from DB
+    // wire delete
     delBtn.addEventListener('click', async () => {
-        try {
-            // find pending record
-            const pi = pendingImageRecords.findIndex(p => p.id === id);
-            if (pi !== -1) {
-                const p = pendingImageRecords[pi];
-                try { p.marker.remove(); } catch (e) {}
-                revokeObjectUrlForId(id);
-                pendingImageRecords.splice(pi, 1);
-            } else {
-                await deleteImageRecord(id);
-                revokeObjectUrlForId(id);
-            }
-        } catch (e) { console.warn(e); }
-        updatePendingButtonsVisibility();
+        try { await deleteImageRecord(id); marker.remove(); } catch (e) { console.warn(e); }
     });
 
-    updatePendingButtonsVisibility();
-
-    // clear pending blob selection
+    // clear pending
     pendingImageBlob = null;
 });
-
-// migrate legacy dataUrl records to Blob objects in IndexedDB
-async function migrateDataUrlToBlob() {
-    try {
-        const rows = await listImageRecords();
-        for (const r of rows) {
-            // only migrate records that have dataUrl and no blob
-            if (r.dataUrl && !r.blob) {
-                try {
-                    // convert dataURL (base64) to Blob
-                    const dataUrl = r.dataUrl;
-                    const parts = dataUrl.split(',');
-                    const meta = parts[0] || '';
-                    const b64 = parts[1] || '';
-                    const mimeMatch = meta.match(/:(.*?);/);
-                    const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
-                    const byteString = atob(b64);
-                    const ab = new Uint8Array(byteString.length);
-                    for (let i = 0; i < byteString.length; i++) ab[i] = byteString.charCodeAt(i);
-                    const blob = new Blob([ab], { type: mime });
-                    // write back as blob and remove dataUrl to save space
-                    const newRec = Object.assign({}, r);
-                    newRec.blob = blob;
-                    delete newRec.dataUrl;
-                    await saveImageRecord(newRec);
-                    console.log('Migrated image record to blob:', r.id);
-                } catch (e) {
-                    console.warn('Failed migrating image record', r.id, e);
-                    // leave original record unchanged on error
-                }
-            }
-        }
-    } catch (e) {
-        console.warn('Migration failed', e);
-    }
-}
-
-// Helper: convert dataURL -> Blob
-function dataUrlToBlob(dataUrl) {
-    const parts = dataUrl.split(',');
-    const meta = parts[0] || '';
-    const b64 = parts[1] || '';
-    const mimeMatch = meta.match(/:(.*?);/);
-    const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
-    const byteString = atob(b64);
-    const ab = new Uint8Array(byteString.length);
-    for (let i = 0; i < byteString.length; i++) ab[i] = byteString.charCodeAt(i);
-    return new Blob([ab], { type: mime });
-}
-
-// Helper: convert Blob -> dataURL (returns Promise)
-function blobToDataUrl(blob) {
-    return new Promise((resolve, reject) => {
-        try {
-            const fr = new FileReader();
-            fr.onload = () => resolve(fr.result);
-            fr.onerror = () => reject(fr.error);
-            fr.readAsDataURL(blob);
-        } catch (e) { reject(e); }
-    });
-}
-
-// load saved images on startup (migration runs first)
+    pendingImageDataUrl = null;
+// load saved images on startup
 (async function restoreImages() {
-    try { await migrateDataUrlToBlob(); } catch (e) { /* ignore migration errors */ }
     try {
         const rows = await listImageRecords();
         for (const r of rows) {
             try {
                 const img = document.createElement('img');
-                // support legacy dataUrl records, otherwise create an object URL from stored Blob
-                let src = null;
-                if (r.dataUrl) src = r.dataUrl;
-                else if (r.blob) src = URL.createObjectURL(r.blob);
-                if (!src) continue;
-                img.src = src;
+                img.src = URL.createObjectURL(r.blob);
+// Migration: convert blob-based image records to dataUrl format
+async function migrateImageRecordToDataUrl(rec) {
+    if (rec.dataUrl || !rec.blob) return rec;
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async () => {
+            rec.dataUrl = reader.result;
+            delete rec.blob;
+            try { await saveImageRecord(rec); } catch (e) { /* ignore */ }
+            resolve(rec);
+        };
+        reader.onerror = () => resolve(rec);
+        reader.readAsDataURL(rec.blob);
+    });
+}
+
+(async function restoreImages() {
+    try {
+        const rows = await listImageRecords();
+        for (let r of rows) {
+            try {
+                // migrate if needed
+                if (!r.dataUrl && r.blob) {
+
+                    r = await migrateImageRecordToDataUrl(r);
+                }
+                if (!r.dataUrl) continue;
+                const img = document.createElement('img');
+                img.src = r.dataUrl;
                 img.style.width = '120px'; img.style.height = '80px'; img.style.objectFit = 'cover'; img.style.borderRadius = '6px';
                 const marker = new mapboxgl.Marker({ element: img }).setLngLat([r.lng, r.lat]).addTo(map);
-                if (r.blob) registerObjectUrl(r.id, src, marker);
                 const popupDiv = document.createElement('div');
-                const full = document.createElement('img'); full.src = src; full.style.maxWidth = '300px'; full.style.display = 'block'; full.style.marginBottom = '6px';
+                const full = document.createElement('img'); full.src = r.dataUrl; full.style.maxWidth = '300px'; full.style.display = 'block'; full.style.marginBottom = '6px';
                 popupDiv.appendChild(full);
                 const delBtn = document.createElement('button'); delBtn.textContent = 'Remove image'; delBtn.className = 'btn secondary'; popupDiv.appendChild(delBtn);
                 const popup = new mapboxgl.Popup().setDOMContent(popupDiv).setMaxWidth('320px');
                 marker.setPopup(popup);
-                delBtn.addEventListener('click', async () => { try { await deleteImageRecord(r.id); marker.remove(); revokeObjectUrlForId(r.id); } catch (e) { console.warn(e); } });
+                delBtn.addEventListener('click', async () => { try { await deleteImageRecord(r.id); marker.remove(); } catch (e) { console.warn(e); } });
             } catch (e) { console.warn('Failed restoring image', e); }
         }
     } catch (e) { console.warn('Failed listing image records', e); }
-    // ensure pending buttons reflect any pending records (likely none on startup)
-    updatePendingButtonsVisibility();
 })();
-</script>
-
-</body>
-</html>
