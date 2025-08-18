@@ -171,15 +171,6 @@
     // topbar buttons exist in DOM; just reference them
     const shareBtn = document.getElementById('share-btn');
 
-    // Optional server endpoints for short-link storage.
-    // Leave empty to keep using client-side compressed URLs (?state=...).
-    // If you deploy a server (examples described in the UI or README), set these
-    // to the deployed endpoints that accept/return JSON { id, payload }.
-    // Example: const SERVER_API_SAVE = 'https://my-func.example.com/api/save';
-    //          const SERVER_API_LOAD = 'https://my-func.example.com/api/load';
-    const SERVER_API_SAVE = ''; // set to your /api/save endpoint
-    const SERVER_API_LOAD = ''; // set to your /api/load endpoint
-
     const note = document.getElementById('map-note');
 
     // Library panel elements
@@ -700,75 +691,67 @@
         try {
             const data = serializePlacedModels();
             const payload = JSON.stringify({ mapCenter: map.getCenter(), zoom: map.getZoom(), pitch: map.getPitch(), bearing: map.getBearing(), models: data });
-            // compress payload to reduce URL length
-            const compressed = LZString.compressToBase64(payload);
-
-            // If a server save endpoint is configured, POST the compressed payload and
-            // expect a short id in response. Otherwise fall back to creating the
-            // compressed ?state= URL (current behavior).
-            if (SERVER_API_SAVE) {
-                try {
-                    const res = await fetch(SERVER_API_SAVE, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ payload: compressed })
-                    });
-                    if (!res.ok) throw new Error('Server returned ' + res.status);
-                    const j = await res.json();
-                    if (j && j.id) {
-                        const shortUrl = location.origin + location.pathname + '?id=' + encodeURIComponent(j.id);
-                        await navigator.clipboard.writeText(shortUrl);
-                        return alert('Short share URL copied to clipboard');
-                    } else {
-                        throw new Error('Invalid server response');
-                    }
-                } catch (e) {
-                    console.warn('Server save failed, falling back to long URL', e);
-                    // fall through to client-only fallback
+            // first try server-backed save (returns a gist id)
+            try {
+                const resp = await fetch('/api/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ payload })
+                });
+                if (resp.ok) {
+                    const json = await resp.json();
+                    const shortUrl = location.origin + location.pathname + '?gist=' + encodeURIComponent(json.id);
+                    await navigator.clipboard.writeText(shortUrl);
+                    alert('Share URL copied (server): ' + shortUrl);
+                    return;
+                } else {
+                    // try to show server error message to help debugging
+                    let detail = '';
+                    try { const j = await resp.json(); detail = j && (j.error || JSON.stringify(j)); } catch(e) { detail = resp.statusText || String(resp.status); }
+                    alert('Server save failed: ' + detail + '\nFalling back to client-compressed URL.');
+                    console.warn('Server save failed detail:', detail);
                 }
+            } catch (e) {
+                alert('Server save request failed: ' + e.message + '\nFalling back to client-compressed URL.');
+                console.warn('Server save failed', e);
             }
-
+            // fallback: compress payload to reduce URL length
+            const compressed = LZString.compressToBase64(payload);
             const url = location.origin + location.pathname + '?state=' + encodeURIComponent(compressed);
-            navigator.clipboard.writeText(url)
-                .then(() => alert('Share URL copied to clipboard'))
-                .catch(() => alert('Failed to copy URL to clipboard'));
+            navigator.clipboard.writeText(url).then(() => alert('Share URL copied (client): ' + url));
         } catch (e) { alert('Failed to create share URL: ' + e.message); }
     });
 
     // Try to restore state from URL param 'state' on load
-    (function tryRestoreFromUrl(){
-        try {
-            const params = new URLSearchParams(window.location.search);
-            const s = params.get('state');
-            const id = params.get('id');
-            // If server load endpoint configured and ?id=... present, try fetching
-            if (SERVER_API_LOAD && id) {
-                (async () => {
-                    try {
-                        const res = await fetch(SERVER_API_LOAD + '?id=' + encodeURIComponent(id));
-                        if (!res.ok) throw new Error('Server returned ' + res.status);
-                        const j = await res.json();
-                        if (j && j.payload) {
-                            const decompressed = LZString.decompressFromBase64(j.payload);
-                            if (!decompressed) { console.warn('Failed to decompress server payload'); return; }
-                            const parsed = JSON.parse(decompressed);
-                            localStorage.setItem('map_saved_state', JSON.stringify(parsed));
-                            setTimeout(() => { loadState(); }, 500);
+        (function tryRestoreFromUrl(){
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const gistId = params.get('gist');
+                if (gistId) {
+                    // try server-backed load
+                    fetch('/api/load?id=' + encodeURIComponent(gistId)).then(r => r.json()).then(json => {
+                        if (json && json.content) {
+                            try {
+                                const parsed = JSON.parse(json.content);
+                                localStorage.setItem('map_saved_state', JSON.stringify(parsed));
+                                setTimeout(() => { loadState(); }, 500);
+                            } catch (e) { console.warn('Failed to parse gist content', e); }
                         }
-                    } catch (e) { console.warn('Failed to load state from server', e); }
-                })();
-                return;
-            }
-            if (!s) return;
-            // decompress state from base64 (client-only flow)
-            const decompressed = LZString.decompressFromBase64(decodeURIComponent(s));
-            if (!decompressed) { console.warn('Failed to decompress state'); return; }
-            const parsed = JSON.parse(decompressed);
-            // save into localStorage then call loadState to reuse logic
-            localStorage.setItem('map_saved_state', JSON.stringify(parsed));
-            // delay restoring until map and model layer ready
-            setTimeout(() => { loadState(); }, 500);
-        } catch (e) { console.warn('Failed to restore from URL', e); }
-    })();
+                    }).catch(err => console.warn('Failed to fetch gist', err));
+                    return;
+                }
+                const s = params.get('state');
+                if (!s) return;
+                // decompress state from base64
+                const decompressed = LZString.decompressFromBase64(decodeURIComponent(s));
+                if (!decompressed) { console.warn('Failed to decompress state'); return; }
+                const parsed = JSON.parse(decompressed);
+                // save into localStorage then call loadState to reuse logic
+                localStorage.setItem('map_saved_state', JSON.stringify(parsed));
+                // delay restoring until map and model layer ready
+                setTimeout(() => { loadState(); }, 500);
+            } catch (e) { console.warn('Failed to restore from URL', e); }
+        })();
 
     // helpers to convert mercator deltas to lat/lng deltas
     function metersPerDegreeAtLat(latDeg) {
@@ -1329,27 +1312,34 @@ async function listImageRecords() {
         req.onerror = () => reject(req.error);
     });
 }
-let pendingImageBlob = null;
+
+// UI state for placing an image
+let pendingImageDataUrl = null;
 
 addImageBtn.addEventListener('click', () => { fileInput.click(); });
 
 fileInput.addEventListener('change', async (ev) => {
     const f = ev.target.files && ev.target.files[0];
     if (!f) return;
-    pendingImageBlob = f;
-    alert('Now click on the map to place the image');
+    // read as data URL (suitable for small/medium images)
+    const reader = new FileReader();
+    reader.onload = () => {
+        pendingImageDataUrl = reader.result;
+        alert('Now click on the map to place the image');
+    };
+    reader.readAsDataURL(f);
     // reset input
     fileInput.value = '';
 });
-    fileInput.value = '';
-// place image on map when user clicks while pendingImageBlob set
+
+// place image on map when user clicks while pendingImageDataUrl set
 map.on('click', async (e) => {
-    if (!pendingImageBlob) return;
+    if (!pendingImageDataUrl) return;
     const lngLat = [e.lngLat.lng, e.lngLat.lat];
     const id = 'img_' + Date.now();
     // create marker element (thumbnail)
     const img = document.createElement('img');
-    img.src = URL.createObjectURL(pendingImageBlob);
+    img.src = pendingImageDataUrl;
     img.style.width = '120px';
     img.style.height = '80px';
     img.style.objectFit = 'cover';
@@ -1360,7 +1350,7 @@ map.on('click', async (e) => {
     // popup with full image and delete button
     const popupDiv = document.createElement('div');
     const full = document.createElement('img');
-    full.src = URL.createObjectURL(pendingImageBlob);
+    full.src = pendingImageDataUrl;
     full.style.maxWidth = '300px';
     full.style.display = 'block';
     full.style.marginBottom = '6px';
@@ -1374,7 +1364,7 @@ map.on('click', async (e) => {
     marker.setPopup(popup);
 
     // save to IndexedDB
-    const rec = { id, blob: pendingImageBlob, lng: lngLat[0], lat: lngLat[1], created: Date.now() };
+    const rec = { id, dataUrl: pendingImageDataUrl, lng: lngLat[0], lat: lngLat[1], created: Date.now() };
     try { await saveImageRecord(rec); } catch (e) { console.warn('Failed saving image to IndexedDB', e); }
 
     // wire delete
@@ -1383,44 +1373,15 @@ map.on('click', async (e) => {
     });
 
     // clear pending
-    pendingImageBlob = null;
-});
     pendingImageDataUrl = null;
+});
+
 // load saved images on startup
 (async function restoreImages() {
     try {
         const rows = await listImageRecords();
         for (const r of rows) {
             try {
-                const img = document.createElement('img');
-                img.src = URL.createObjectURL(r.blob);
-// Migration: convert blob-based image records to dataUrl format
-async function migrateImageRecordToDataUrl(rec) {
-    if (rec.dataUrl || !rec.blob) return rec;
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = async () => {
-            rec.dataUrl = reader.result;
-            delete rec.blob;
-            try { await saveImageRecord(rec); } catch (e) { /* ignore */ }
-            resolve(rec);
-        };
-        reader.onerror = () => resolve(rec);
-        reader.readAsDataURL(rec.blob);
-    });
-}
-
-(async function restoreImages() {
-    try {
-        const rows = await listImageRecords();
-        for (let r of rows) {
-            try {
-                // migrate if needed
-                if (!r.dataUrl && r.blob) {
-
-                    r = await migrateImageRecordToDataUrl(r);
-                }
-                if (!r.dataUrl) continue;
                 const img = document.createElement('img');
                 img.src = r.dataUrl;
                 img.style.width = '120px'; img.style.height = '80px'; img.style.objectFit = 'cover'; img.style.borderRadius = '6px';
@@ -1436,3 +1397,7 @@ async function migrateImageRecordToDataUrl(rec) {
         }
     } catch (e) { console.warn('Failed listing image records', e); }
 })();
+</script>
+
+</body>
+</html>
